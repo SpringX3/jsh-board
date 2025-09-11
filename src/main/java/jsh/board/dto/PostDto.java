@@ -1,6 +1,6 @@
-package com.example.board.dto;
+package jsh.board.dto;
 
-import com.example.board.domain.Post;
+import jsh.board.domain.Post;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;

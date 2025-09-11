@@ -1,4 +1,4 @@
-package com.example.board.domain;
+package jsh.board.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

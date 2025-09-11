@@ -1,8 +1,8 @@
-package com.example.board.service;
+package jsh.board.service;
 
-import com.example.board.domain.Post;
-import com.example.board.dto.PostDto;
-import com.example.board.repository.PostRepository;
+import jsh.board.domain.Post;
+import jsh.board.dto.PostDto;
+import jsh.board.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,9 +1,9 @@
-package com.example.board.post;
+package jsh.board.post;
 
-import com.example.board.domain.Post;
-import com.example.board.dto.PostDto;
-import com.example.board.repository.PostRepository;
-import com.example.board.service.PostService;
+import jsh.board.domain.Post;
+import jsh.board.dto.PostDto;
+import jsh.board.repository.PostRepository;
+import jsh.board.service.PostService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
