@@ -73,7 +73,7 @@ public class PostServiceTest {
     }
 
     @Test
-    @DisplayName("ID로 게시글 조회 요청이 들어오면, 해당 게시글 DTO를 반환한다. - success")
+    @DisplayName("ID로 게시글 조회 요청이 들어오면, 해당 게시글 DTO를 반환한다. - fail")
     void getPostById_fail() {
         // given
         when(postRepository.findById(99L)).thenReturn(Optional.empty());
