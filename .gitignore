@@ -39,3 +39,4 @@ out/
 *.pem
 *.key
 *.csr
+.env

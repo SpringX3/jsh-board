@@ -28,3 +28,6 @@ services:
       - "8080:8080" # 호스트의 8080 포트와 컨테이너의 8080 포트를 연결
     environment:
       - SPRING_PROFILES_ACTIVE=default # application.properties를 사용하도록 명시 (필요 시 dev, prod 등으로 변경)
+      - DB_URL=${DB_URL}
+      - DB_USER=${MYSQL_USER}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
