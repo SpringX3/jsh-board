@@ -1,0 +1,15 @@
+# .dockerignore
+
+# IDE/Editor folders
+.idea/
+.vscode/
+*.iml
+
+# Build output
+build/
+.gradle/
+
+# Local files
+/out/
+/local.properties
+*.log

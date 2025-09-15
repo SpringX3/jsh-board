@@ -40,6 +40,8 @@ public class PostDto {
             Long id,
             String title,
             String content,
+            int viewCount,
+            int commentCount,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ){
@@ -48,6 +50,8 @@ public class PostDto {
                     post.getId(),
                     post.getTitle(),
                     post.getContent(),
+                    post.getViewCount(),
+                    post.getComments().size(),
                     post.getCreatedTime(),
                     post.getUpdatedTime()
             );
