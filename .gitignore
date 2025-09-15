@@ -40,3 +40,5 @@ out/
 *.key
 *.csr
 .env
+
+/data
