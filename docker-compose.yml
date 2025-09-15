@@ -9,6 +9,7 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE} # 컨테이너 생성 시 자동으로 생성할 데이터베이스 이름
       MYSQL_USER: ${MYSQL_USER} # 생성할 사용자 이름
       MYSQL_PASSWORD: ${MYSQL_PASSWORD} # 사용자의 비밀번호
+      TZ: Asia/Seoul
     ports:
       - "3306:3306" # 호스트의 3306 포트와 컨테이너의 3306 포트를 연결
     volumes:
@@ -27,6 +28,7 @@ services:
     ports:
       - "8080:8080" # 호스트의 8080 포트와 컨테이너의 8080 포트를 연결
     environment:
+      - TZ=Asia/Seoul
       - SPRING_PROFILES_ACTIVE=default # application.properties를 사용하도록 명시 (필요 시 dev, prod 등으로 변경)
       - DB_URL=${DB_URL}
       - DB_USER=${MYSQL_USER}

@@ -28,6 +28,7 @@ public class PostController {
     // Get post by ID (GET /api/posts/{id})
     @GetMapping("/{id}")
     public ResponseEntity<PostDto.Response> findPostById(@PathVariable Long id) {
+        postService.increaseViewCount(id);
         PostDto.Response postResponse = postService.findPostById(id);
         return ResponseEntity.ok(postResponse);
     }

@@ -38,9 +38,19 @@ public class PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
-        post.setViewCount(post.getViewCount() + 1);
-
         return PostDto.Response.from(post);
+    }
+
+    /*
+    * Increase View Count
+    */
+    @Transactional
+    public void increaseViewCount(Long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        post.setViewCount(post.getViewCount() + 1);
+        postRepository.save(post);
     }
 
     /*
