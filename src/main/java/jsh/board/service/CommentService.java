@@ -32,13 +32,13 @@ public class CommentService {
         return savedComment.getId();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<CommentDto.Response> getComments(Long postId){
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시물이 존재하지 않습니다."));
+        if (!postRepository.existsById(postId)){
+            throw new IllegalArgumentException("게시물이 존재하지 않습니다ㅏ.");
+        }
 
-        return commentRepository.findAll().stream()
-                .filter(c -> c.getPost().equals(post))
+        return commentRepository.findByPostId(postId).stream()
                 .map(CommentDto.Response::from)
                 .collect(Collectors.toList());
     }

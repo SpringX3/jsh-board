@@ -71,7 +71,7 @@ public class PostControllerTest {
     void findPostById_success() throws Exception {
         // given
         Long postId = 1L;
-        PostDto.Response response = new PostDto.Response(postId, "title", "content", LocalDateTime.now(), null);
+        PostDto.Response response = new PostDto.Response(postId, "title", "content", 0, 0, LocalDateTime.now(), null);
         given(postService.findPostById(postId)).willReturn(response);
 
         // when & then
@@ -90,8 +90,8 @@ public class PostControllerTest {
     void getAllPosts()  throws Exception {
         // given
         List<PostDto.Response> postList = List.of(
-                new PostDto.Response(1L, "title1", "content1", LocalDateTime.now(), null),
-                new PostDto.Response(2L, "title2", "content2", LocalDateTime.now(), null)
+                new PostDto.Response(1L, "title1", "content1", 0, 0, LocalDateTime.now(), null),
+                new PostDto.Response(2L, "title2", "content2", 0, 0, LocalDateTime.now(), null)
         );
         given(postService.getAllPosts()).willReturn(postList);
 
