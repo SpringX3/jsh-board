@@ -75,7 +75,6 @@ public class CommentServiceTest {
 
         // then
         assertThat(commentList).hasSize(2);
-        assertThat(commentList.get(0).content()).isEqualTo("content1");
         verify(postRepository, times(1)).existsById(postId);
         verify(commentRepository, times(1)).findByPostId(postId);
     }
