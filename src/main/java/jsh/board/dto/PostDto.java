@@ -1,5 +1,6 @@
 package jsh.board.dto;
 
+import jsh.board.domain.Member;
 import jsh.board.domain.Post;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

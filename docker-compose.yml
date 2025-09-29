@@ -33,3 +33,4 @@ services:
       - DB_URL=${DB_URL}
       - DB_USER=${MYSQL_USER}
       - DB_PASSWORD=${MYSQL_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
