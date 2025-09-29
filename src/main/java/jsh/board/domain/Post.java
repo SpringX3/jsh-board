@@ -27,7 +27,11 @@ public class Post extends BaseTimeEntity{
     private int viewCount;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member author;
 
     public void update(String title, String content) {
         this.title =  title;
@@ -35,10 +39,10 @@ public class Post extends BaseTimeEntity{
     }
 
     @Builder
-    public Post(String title, String content) {
+    public Post(String title, String content, Member author) {
         this.title = title;
         this.content = content;
         this.viewCount = 0;
-        this.comments = new ArrayList<>();
+        this.author = author;
     }
 }
