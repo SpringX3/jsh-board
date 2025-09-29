@@ -11,7 +11,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD} # 사용자의 비밀번호
       TZ: Asia/Seoul
     ports:
-      - "3306:3306" # 호스트의 3306 포트와 컨테이너의 3306 포트를 연결
+      - "3307:3306" # 호스트의 3307 포트와 컨테이너의 3306 포트를 연결
     volumes:
       - ./data/mysql:/var/lib/mysql # 호스트의 ./data/mysql 디렉토리와 컨테이너의 데이터 디렉토리를 연결하여 데이터 영속성 확보
     command: # MySQL 서버의 기본 문자셋을 utf8mb4로 설정

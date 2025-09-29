@@ -25,7 +25,7 @@ COPY src ./src
 RUN ./gradlew build -x test
 
 # =================
-# 2. 실행(Runtime) 단계 (변경 없음)
+# 2. 실행(Runtime) 단계
 # =================
 
 FROM openjdk:21-slim-bullseye
