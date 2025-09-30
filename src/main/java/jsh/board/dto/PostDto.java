@@ -20,10 +20,11 @@ public class PostDto {
             String content
     ){
         // DTO -> Entity
-        public Post toEntity(){
+        public Post toEntity(Member author){
             return Post.builder()
                     .title(title)
                     .content(content)
+                    .author(author)
                     .build();
         }
     }

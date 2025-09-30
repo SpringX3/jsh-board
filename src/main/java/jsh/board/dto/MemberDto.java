@@ -1,5 +1,6 @@
 package jsh.board.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -17,17 +18,18 @@ public class MemberDto {
             String email,
 
             @NotBlank
-            @Size(min = 6)
-            String password,
-
-            @NotBlank
             @Size(min = 6, max = 20)
             String username,
+
+            @NotBlank
+            @Size(min = 6)
+            String password,
 
             @NotBlank
             String pwdConfirm
     ) {
         @AssertTrue(message = "Passwords do not match")
+        @JsonIgnore
         public boolean isPasswordsMatching() {
             return password.equals(pwdConfirm);
         }

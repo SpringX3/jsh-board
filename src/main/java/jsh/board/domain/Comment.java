@@ -20,12 +20,18 @@ public class Comment extends BaseTimeEntity {
     @JoinColumn(name = "post_id")
     private Post post;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member author;
+
     public void update(String content) {
         this.content = content;
     }
 
     @Builder
-    public Comment(String content) {
+    public Comment(String content, Post post, Member author) {
         this.content = content;
+        this.post = post;
+        this.author = author;
     }
 }

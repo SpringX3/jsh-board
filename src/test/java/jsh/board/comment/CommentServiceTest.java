@@ -1,22 +1,33 @@
 package jsh.board.comment;
 
 import jsh.board.domain.Comment;
+import jsh.board.domain.Member;
 import jsh.board.domain.Post;
+import jsh.board.domain.Role;
 import jsh.board.dto.CommentDto;
+import jsh.board.exception.InvalidCredentialsException;
+import jsh.board.exception.UnauthorizedOperationException;
 import jsh.board.repository.CommentRepository;
+import jsh.board.repository.MemberRepository;
 import jsh.board.repository.PostRepository;
 import jsh.board.service.CommentService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -30,6 +41,22 @@ public class CommentServiceTest {
     private CommentRepository commentRepository;
     @Mock
     private PostRepository postRepository;
+    @Mock
+    private MemberRepository memberRepository;
+
+    private static final String EMAIL = "test@example.com";
+
+    @BeforeEach
+    void setUpSecurityContext() {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(new UsernamePasswordAuthenticationToken(EMAIL, "password"));
+        SecurityContextHolder.setContext(context);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     @DisplayName("댓글 작성 성공")
@@ -38,13 +65,23 @@ public class CommentServiceTest {
         Long postId = 1L;
         Post post = Post.builder().title("title").content("content").build();
         CommentDto.addRequest request = new CommentDto.addRequest("new comment");
+        Member author = Member.builder()
+                .email(EMAIL)
+                .password("encoded")
+                .username("tester")
+                .role(Role.USER)
+                .build();
 
-        Comment commentToSave = request.toEntity();
-        commentToSave.setPost(post);
-        Comment savedComment = Comment.builder().content("new comment").build();
+        Comment savedComment = Comment.builder()
+                .content("new comment")
+                .post(post)
+                .author(author)
+                .build();
+        savedComment.setId(2L);
 
         // Mock 객체의 행동 정의 (Stubbing)
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(author));
         when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
 
         // when
@@ -53,6 +90,7 @@ public class CommentServiceTest {
         // then
         assertThat(savedCommentId).isEqualTo(savedComment.getId());
         verify(postRepository, times(1)).findById(postId);
+        verify(memberRepository, times(1)).findByEmail(EMAIL);
         verify(commentRepository, times(1)).save(any(Comment.class));
     }
 
@@ -84,11 +122,23 @@ public class CommentServiceTest {
     void updateComment_Success() {
         // given
         Long commentId = 1L;
-        Comment comment = Comment.builder().content("original content").build();
+        Member author = Member.builder()
+                .email(EMAIL)
+                .password("encoded")
+                .username("tester")
+                .role(Role.USER)
+                .build();
+        author.setId(99L);
+
+        Comment comment = Comment.builder()
+                .content("original content")
+                .author(author)
+                .build();
         CommentDto.editRequest request = new CommentDto.editRequest("updated content");
 
         // Mock 객체의 행동 정의
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
+        when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(author));
 
         // when
         commentService.editComment(commentId, request);
@@ -96,6 +146,39 @@ public class CommentServiceTest {
         // then
         assertThat(comment.getContent()).isEqualTo("updated content");
         verify(commentRepository, times(1)).findById(commentId);
+        verify(memberRepository, times(1)).findByEmail(EMAIL);
+    }
+
+    @Test
+    @DisplayName("작성자와 다른 사용자가 댓글 수정 시 예외 발생")
+    void updateComment_Unauthorized() {
+        Long commentId = 1L;
+        Member author = Member.builder()
+                .email("owner@example.com")
+                .password("encoded")
+                .username("owner")
+                .role(Role.USER)
+                .build();
+        author.setId(1L);
+
+        Member other = Member.builder()
+                .email(EMAIL)
+                .password("encoded")
+                .username("other")
+                .role(Role.USER)
+                .build();
+        other.setId(2L);
+
+        Comment comment = Comment.builder()
+                .content("original")
+                .author(author)
+                .build();
+
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
+        when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(other));
+
+        assertThatThrownBy(() -> commentService.editComment(commentId, new CommentDto.editRequest("edit")))
+                .isInstanceOf(UnauthorizedOperationException.class);
     }
 
     @Test
@@ -103,13 +186,34 @@ public class CommentServiceTest {
     void deleteComment_Success() {
         // given
         Long commentId = 1L;
-        // deleteById는 void를 반환하므로 특별한 when/then이 필요 없음
+        Member author = Member.builder()
+                .email(EMAIL)
+                .password("encoded")
+                .username("tester")
+                .role(Role.USER)
+                .build();
+        author.setId(42L);
+
+        Comment comment = Comment.builder()
+                .content("content")
+                .author(author)
+                .build();
+
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
+        when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(author));
 
         // when
         commentService.deleteComment(commentId);
 
         // then
-        // void 메소드는 호출되었는지 여부만 검증하는 것이 올바른 테스트 방식
-        verify(commentRepository, times(1)).deleteById(commentId);
+        verify(commentRepository, times(1)).delete(comment);
+    }
+
+    @Test
+    @DisplayName("인증 정보가 없으면 예외 발생")
+    void operationWithoutAuthentication_Fails() {
+        SecurityContextHolder.clearContext();
+        assertThatThrownBy(() -> commentService.addComment(1L, new CommentDto.addRequest("content")))
+                .isInstanceOf(InvalidCredentialsException.class);
     }
 }
