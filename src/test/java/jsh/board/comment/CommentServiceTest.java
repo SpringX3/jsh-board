@@ -14,12 +14,11 @@ import jsh.board.service.CommentService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -46,15 +45,14 @@ public class CommentServiceTest {
 
     private static final String EMAIL = "test@example.com";
 
-    @BeforeEach
-    void setUpSecurityContext() {
+    private void authenticate(String email) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(new UsernamePasswordAuthenticationToken(EMAIL, "password"));
+        GrantedAuthority authority = () -> "ROLE_USER";
+        context.setAuthentication(new UsernamePasswordAuthenticationToken(email, "password", List.of(authority)));
         SecurityContextHolder.setContext(context);
     }
 
-    @AfterEach
-    void clearSecurityContext() {
+    private void clearAuthentication() {
         SecurityContextHolder.clearContext();
     }
 
@@ -84,14 +82,19 @@ public class CommentServiceTest {
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(author));
         when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
 
-        // when
-        Long savedCommentId = commentService.addComment(postId, request);
+        authenticate(EMAIL);
+        try {
+            // when
+            Long savedCommentId = commentService.addComment(postId, request);
 
-        // then
-        assertThat(savedCommentId).isEqualTo(savedComment.getId());
-        verify(postRepository, times(1)).findById(postId);
-        verify(memberRepository, times(1)).findByEmail(EMAIL);
-        verify(commentRepository, times(1)).save(any(Comment.class));
+            // then
+            assertThat(savedCommentId).isEqualTo(savedComment.getId());
+            verify(postRepository, times(1)).findById(postId);
+            verify(memberRepository, times(1)).findByEmail(EMAIL);
+            verify(commentRepository, times(1)).save(any(Comment.class));
+        } finally {
+            clearAuthentication();
+        }
     }
 
     @Test
@@ -140,13 +143,18 @@ public class CommentServiceTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(author));
 
-        // when
-        commentService.editComment(commentId, request);
+        authenticate(EMAIL);
+        try {
+            // when
+            commentService.editComment(commentId, request);
 
-        // then
-        assertThat(comment.getContent()).isEqualTo("updated content");
-        verify(commentRepository, times(1)).findById(commentId);
-        verify(memberRepository, times(1)).findByEmail(EMAIL);
+            // then
+            assertThat(comment.getContent()).isEqualTo("updated content");
+            verify(commentRepository, times(1)).findById(commentId);
+            verify(memberRepository, times(1)).findByEmail(EMAIL);
+        } finally {
+            clearAuthentication();
+        }
     }
 
     @Test
@@ -177,8 +185,13 @@ public class CommentServiceTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(other));
 
-        assertThatThrownBy(() -> commentService.editComment(commentId, new CommentDto.editRequest("edit")))
-                .isInstanceOf(UnauthorizedOperationException.class);
+        authenticate(EMAIL);
+        try {
+            assertThatThrownBy(() -> commentService.editComment(commentId, new CommentDto.editRequest("edit")))
+                    .isInstanceOf(UnauthorizedOperationException.class);
+        } finally {
+            clearAuthentication();
+        }
     }
 
     @Test
@@ -202,17 +215,29 @@ public class CommentServiceTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(author));
 
-        // when
-        commentService.deleteComment(commentId);
+        authenticate(EMAIL);
+        try {
+            // when
+            commentService.deleteComment(commentId);
 
-        // then
-        verify(commentRepository, times(1)).delete(comment);
+            // then
+            verify(commentRepository, times(1)).delete(comment);
+        } finally {
+            clearAuthentication();
+        }
     }
 
     @Test
     @DisplayName("인증 정보가 없으면 예외 발생")
     void operationWithoutAuthentication_Fails() {
-        SecurityContextHolder.clearContext();
+        Post post = Post.builder()
+                .title("title")
+                .content("content")
+                .build();
+
+        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+        lenient().when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
+        clearAuthentication();
         assertThatThrownBy(() -> commentService.addComment(1L, new CommentDto.addRequest("content")))
                 .isInstanceOf(InvalidCredentialsException.class);
     }

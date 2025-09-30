@@ -32,6 +32,10 @@ public class MemberService {
             throw new DuplicateResourceException("이미 등록된 이메일입니다.");
         }
 
+        if (memberRepository.findByUsername(request.username())){
+            throw new DuplicateResourceException("이미 존재하는 닉네임입니다.");
+        }
+
         String encodedPassword = passwordEncoder.encode(request.password());
         Member member = request.toEntity(Role.USER, encodedPassword);
 

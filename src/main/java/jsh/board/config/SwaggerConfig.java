@@ -19,7 +19,7 @@ public class SwaggerConfig {
                 .version("v1.0.0")
                 .description("Spring Boot 게시판 프로젝트 API 명세서");
 
-        // 2. JWT 인증 스킴을 정의합니다. 'bearerAuth'는 이 스킴의 고유한 이름입니다.
+        // 2. JWT 인증 스킴을 정의합니다.
         String securitySchemeName = "bearerAuth";
         SecurityScheme bearerAuth = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP) // 인증 타입을 HTTP로 설정

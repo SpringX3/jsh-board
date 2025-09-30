@@ -72,8 +72,8 @@ public class CommentControllerTest {
         // given
         Long postId = 1L;
         List<CommentDto.Response> commentList = List.of(
-                new CommentDto.Response(1L, "comment 1", LocalDateTime.now(), null),
-                new CommentDto.Response(2L, "comment 2", LocalDateTime.now(), null)
+                new CommentDto.Response(1L, "comment 1", "author 1", LocalDateTime.now(), null),
+                new CommentDto.Response(2L, "comment 2", "author 2", LocalDateTime.now(), null)
         );
         given(commentService.getComments(postId)).willReturn(commentList);
 

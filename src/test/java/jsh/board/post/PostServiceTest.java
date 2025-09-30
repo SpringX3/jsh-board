@@ -14,12 +14,11 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -42,27 +41,28 @@ public class PostServiceTest {
     @Mock
     private MemberRepository memberRepository;
 
-    private Member author;
     private static final String EMAIL = "writer@example.com";
 
-    @BeforeEach
-    void setUp() {
+    private void authenticate(String email) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(new UsernamePasswordAuthenticationToken(EMAIL, "password"));
+        GrantedAuthority authority = () -> "ROLE_USER";
+        context.setAuthentication(new UsernamePasswordAuthenticationToken(email, "password", List.of(authority)));
         SecurityContextHolder.setContext(context);
-
-        author = Member.builder()
-                .email(EMAIL)
-                .password("encoded")
-                .username("writer")
-                .role(Role.USER)
-                .build();
-        author.setId(10L);
     }
 
-    @AfterEach
-    void tearDown() {
+    private void clearAuthentication() {
         SecurityContextHolder.clearContext();
+    }
+
+    private Member createMember(String email, long id) {
+        Member member = Member.builder()
+                .email(email)
+                .password("encoded")
+                .username(email.split("@")[0])
+                .role(Role.USER)
+                .build();
+        member.setId(id);
+        return member;
     }
 
     @Test
@@ -70,6 +70,7 @@ public class PostServiceTest {
     void createPost() {
         // given
         PostDto.CreateRequest request = new PostDto.CreateRequest("title", "content");
+        Member author = createMember(EMAIL, 10L);
         Post savedPost = Post.builder()
                 .title(request.title())
                 .content(request.content())
@@ -80,13 +81,18 @@ public class PostServiceTest {
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(author));
         when(postRepository.save(any(Post.class))).thenReturn(savedPost);
 
-        // when
-        Long createdPost = postService.createPost(request);
+        authenticate(EMAIL);
+        try {
+            // when
+            Long createdPost = postService.createPost(request);
 
-        // then
-        Assertions.assertThat(createdPost).isEqualTo(savedPost.getId());
-        verify(memberRepository, times(1)).findByEmail(EMAIL);
-        verify(postRepository, times(1)).save(any(Post.class));
+            // then
+            Assertions.assertThat(createdPost).isEqualTo(savedPost.getId());
+            verify(memberRepository, times(1)).findByEmail(EMAIL);
+            verify(postRepository, times(1)).save(any(Post.class));
+        } finally {
+            clearAuthentication();
+        }
     }
 
     @Test
@@ -155,6 +161,7 @@ public class PostServiceTest {
     @DisplayName("게시글 수정 요청이 들어오면, 해당 게시글의 내용을 새로운 내용으로 대체")
     void updatePost() {
         // given
+        Member author = createMember(EMAIL, 10L);
         Post post = Post.builder()
                 .title("title")
                 .content("content")
@@ -167,15 +174,20 @@ public class PostServiceTest {
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(author));
 
-        // when
-        postService.updatePost(1L, request);
+        authenticate(EMAIL);
+        try {
+            // when
+            postService.updatePost(1L, request);
 
-        // then
-        Assertions.assertThat(post.getTitle()).isEqualTo("edited title");
-        Assertions.assertThat(post.getContent()).isEqualTo("edited content");
+            // then
+            Assertions.assertThat(post.getTitle()).isEqualTo("edited title");
+            Assertions.assertThat(post.getContent()).isEqualTo("edited content");
 
-        verify(postRepository, times(1)).findById(1L);
-        verify(memberRepository, times(1)).findByEmail(EMAIL);
+            verify(postRepository, times(1)).findById(1L);
+            verify(memberRepository, times(1)).findByEmail(EMAIL);
+        } finally {
+            clearAuthentication();
+        }
     }
 
     @Test
@@ -193,17 +205,25 @@ public class PostServiceTest {
                 .build();
         post.getAuthor().setId(99L);
 
+        Member author = createMember(EMAIL, 10L);
+
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(author));
 
-        assertThatThrownBy(() -> postService.updatePost(1L, new PostDto.UpdateRequest("t", "c")))
-                .isInstanceOf(UnauthorizedOperationException.class);
+        authenticate(EMAIL);
+        try {
+            assertThatThrownBy(() -> postService.updatePost(1L, new PostDto.UpdateRequest("t", "c")))
+                    .isInstanceOf(UnauthorizedOperationException.class);
+        } finally {
+            clearAuthentication();
+        }
     }
 
     @Test
     @DisplayName("게시글 삭제 요청이 들어오면, 해당 게시글을 삭제")
     void deletePost() {
         // given
+        Member author = createMember(EMAIL, 10L);
         Post post = Post.builder()
                 .title("title")
                 .content("content")
@@ -214,11 +234,16 @@ public class PostServiceTest {
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
         when(memberRepository.findByEmail(EMAIL)).thenReturn(Optional.of(author));
 
-        // when
-        postService.deletePost(1L);
+        authenticate(EMAIL);
+        try {
+            // when
+            postService.deletePost(1L);
 
-        // then
-        verify(postRepository, times(1)).delete(post);
+            // then
+            verify(postRepository, times(1)).delete(post);
+        } finally {
+            clearAuthentication();
+        }
     }
 
     @Test
