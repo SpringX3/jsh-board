@@ -1,18 +1,19 @@
 package jsh.board.service;
 
+import jakarta.transaction.Transactional;
 import jsh.board.domain.Member;
 import jsh.board.domain.RefreshToken;
 import jsh.board.domain.Role;
 import jsh.board.dto.MemberDto;
 import jsh.board.exception.DuplicateResourceException;
 import jsh.board.exception.InvalidCredentialsException;
+import jsh.board.exception.UnauthorizedOperationException;
 import jsh.board.jwt.JwtProvider;
 import jsh.board.repository.MemberRepository;
 import jsh.board.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Map;
@@ -69,5 +70,12 @@ public class MemberService {
                 "accessToken", accessToken,
                 "refreshToken", refreshTokenValue
         );
+    }
+
+    @Transactional
+    public void logOut(String email) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("해당 유저를 찾을 수 없습니다."));
+        refreshTokenRepository.deleteByMemberId(member.getId());
     }
 }

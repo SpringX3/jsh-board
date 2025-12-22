@@ -2,7 +2,7 @@
 # 1. 빌드(Build) 단계 - 최적화 적용
 # =================
 
-FROM openjdk:21-jdk-slim AS builder
+FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ RUN ./gradlew build -x test
 # 2. 실행(Runtime) 단계
 # =================
 
-FROM openjdk:21-slim-bullseye
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 

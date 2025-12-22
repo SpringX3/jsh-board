@@ -8,10 +8,10 @@ import jsh.board.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -35,5 +35,12 @@ public class MemberController {
     public ResponseEntity<Map<String, String>> logIn(@Valid @RequestBody MemberDto.LogInRequest request) {
         Map<String, String> tokens = memberService.logIn(request);
         return ResponseEntity.ok(tokens);
+    }
+
+    @Operation(summary = "로그아웃")
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logOut(@AuthenticationPrincipal UserDetails userDetails) {
+        memberService.logOut(userDetails.getUsername());
+        return ResponseEntity.ok().build();
     }
 }
