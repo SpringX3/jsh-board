@@ -49,7 +49,7 @@ public class SecurityConfig {
                                 // "/**"는 모든 경로를 의미합니다.
                                 // 모든 경로에 대한 요청을 인증 없이 허용(permitAll)합니다.
                         .requestMatchers("/", "/favicon.ico").permitAll()
-                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs", "/v3/api-docs.yaml", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs", "/v3/api-docs.yaml", "/v3/api-docs/**", "/api/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .anyRequest().authenticated()
                 )
