@@ -45,6 +45,7 @@ services:
       - "9090:9090"
     depends_on:
       - app
+    restart: always
 
   # Grafana 설정
   grafana:
@@ -54,3 +55,8 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+    environment:
+      - GF_SERVER_DOMAIN=3.34.201.113
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=ture
+    restart: always
