@@ -20,7 +20,8 @@ services:
 
   # Spring Boot 애플리케이션 서비스 설정
   app:
-    build: . # 현재 디렉토리의 Dockerfile을 사용하여 이미지를 빌드
+#    build: . # 현재 디렉토리의 Dockerfile을 사용하여 이미지를 빌드
+    image: ${DOCKER_USERNAME}/jsh-board-app:latest
     container_name: jsh-board-app
     restart: always
     depends_on: # 의존 관계 설정
